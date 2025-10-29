@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-
 import { Fade, Flex, Line, Row, ToggleButton } from "@once-ui-system/core";
 
 import { routes, display, person, about, blog, work, gallery } from "@/resources";
@@ -10,37 +9,39 @@ import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.scss";
 
 type TimeDisplayProps = {
-  timeZone: string;
-  locale?: string; // Optionally allow locale, defaulting to 'en-GB'
+  timeZone?: string;
+  locale?: string;
 };
 
-const TimeDisplay: React.FC<TimeDisplayProps> = ({ timeZone, locale = "en-GB" }) => {
+const TimeDisplay = ({ timeZone = "Asia/Kolkata", locale = "en-GB" }: TimeDisplayProps) => {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        timeZone,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      };
-      const timeString = new Intl.DateTimeFormat(locale, options).format(now);
-      setCurrentTime(timeString);
+      try {
+        const now = new Date();
+        const options: Intl.DateTimeFormatOptions = {
+          timeZone,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        };
+        const timeString = new Intl.DateTimeFormat(locale, options).format(now);
+        setCurrentTime(timeString);
+      } catch {
+        console.error("Invalid timezone:", timeZone);
+        setCurrentTime("Invalid Timezone");
+      }
     };
 
     updateTime();
     const intervalId = setInterval(updateTime, 1000);
-
     return () => clearInterval(intervalId);
   }, [timeZone, locale]);
 
   return <>{currentTime}</>;
 };
-
-export default TimeDisplay;
 
 export const Header = () => {
   const pathname = usePathname() ?? "";
@@ -68,13 +69,14 @@ export const Header = () => {
         padding="8"
         horizontal="center"
         data-border="rounded"
-        s={{
-          position: "fixed",
-        }}
+        s={{ position: "fixed" }}
       >
+        {/* Left section */}
         <Row paddingLeft="12" fillWidth vertical="center" textVariant="body-default-s">
           {display.location && <Row s={{ hide: true }}>{person.location}</Row>}
         </Row>
+
+        {/* Center navigation */}
         <Row fillWidth horizontal="center">
           <Row
             background="page"
@@ -90,6 +92,8 @@ export const Header = () => {
                 <ToggleButton prefixIcon="home" href="/" selected={pathname === "/"} />
               )}
               <Line background="neutral-alpha-medium" vert maxHeight="24" />
+
+              {/* About */}
               {routes["/about"] && (
                 <>
                   <Row s={{ hide: true }}>
@@ -109,6 +113,8 @@ export const Header = () => {
                   </Row>
                 </>
               )}
+
+              {/* Work */}
               {routes["/work"] && (
                 <>
                   <Row s={{ hide: true }}>
@@ -128,6 +134,8 @@ export const Header = () => {
                   </Row>
                 </>
               )}
+
+              {/* Blog */}
               {routes["/blog"] && (
                 <>
                   <Row s={{ hide: true }}>
@@ -147,6 +155,8 @@ export const Header = () => {
                   </Row>
                 </>
               )}
+
+              {/* Gallery */}
               {routes["/gallery"] && (
                 <>
                   <Row s={{ hide: true }}>
@@ -166,6 +176,8 @@ export const Header = () => {
                   </Row>
                 </>
               )}
+
+              {/* Theme Switcher */}
               {display.themeSwitcher && (
                 <>
                   <Line background="neutral-alpha-medium" vert maxHeight="24" />
@@ -175,6 +187,8 @@ export const Header = () => {
             </Row>
           </Row>
         </Row>
+
+        {/* Right section */}
         <Flex fillWidth horizontal="end" vertical="center">
           <Flex
             paddingRight="12"
@@ -184,7 +198,7 @@ export const Header = () => {
             gap="20"
           >
             <Flex s={{ hide: true }}>
-              {display.time && <TimeDisplay timeZone={person.location} />}
+              {display.time && <TimeDisplay />} {/* ✅ Uses default Asia/Kolkata */}
             </Flex>
           </Flex>
         </Flex>
